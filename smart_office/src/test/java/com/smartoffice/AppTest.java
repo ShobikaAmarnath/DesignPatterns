@@ -1,4 +1,4 @@
-package com.ecommerce;
+package com.smartoffice;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
