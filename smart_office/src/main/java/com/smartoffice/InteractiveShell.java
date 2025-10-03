@@ -2,7 +2,6 @@ package com.smartoffice;
 
 import com.smartoffice.command.AddOccupantCommand;
 import com.smartoffice.command.BookRoomCommand;
-import com.smartoffice.command.CancelRoomCommand;
 import com.smartoffice.command.CommandInvoker;
 import com.smartoffice.config.OfficeConfiguration;
 import com.smartoffice.exception.BookingConflictException;
@@ -83,12 +82,12 @@ public class InteractiveShell {
                         break;
                     case 9:
                         requireConfig();
-                        System.out.println("👉 Show occupancy - (to be implemented)");
+                        showOccupancy();
                         break;
                     case 10:
                         printHelp();
                         break;
-                    case 0:
+                    case 11:
                         exitRequested = true;
                         System.out.println("👋 Exiting Smart Office. Goodbye!");
                         if (bookingManager != null) {
@@ -106,26 +105,38 @@ public class InteractiveShell {
 
     private void configureOffice() {
         try {
+            if (bookingManager != null) {
+                System.out.println("⚠️ Office already configured. Restart the application to change configuration.");
+                return;
+            }
+
             System.out.print("Enter total number of rooms: ");
             int rooms = Integer.parseInt(scanner.nextLine());
 
             System.out.print("Enter default room capacity: ");
             int capacity = Integer.parseInt(scanner.nextLine());
 
+            System.out.print("Enter auto-release delay in minutes (e.g., 1 for testing, 5 for production): ");
+            int delayMinutes = Integer.parseInt(scanner.nextLine());
+            if (delayMinutes <= 0) delayMinutes = 5;
+
             OfficeConfiguration config = OfficeConfiguration.getInstance(rooms, capacity);
-            System.out.println("✅ Office configured with " + rooms + " rooms, default capacity " + capacity);
+            System.out.printf("✅ Office configured with %d meeting rooms:%n", rooms);
+            for (int i = 1; i <= rooms; i++) {
+                System.out.printf("Room %d (capacity %d)%n", i, config.getRoomCapacity(i));
+            }
 
             // Initialize managers & observers only now
-            bookingManager = new BookingManager(Duration.ofMinutes(5), 2); // 5 min auto-release, 2 person threshold
+            bookingManager = new BookingManager(Duration.ofMinutes(delayMinutes), 2);
             sensor = new OccupancySensor(bookingManager);
             sensor.registerObserver(new LightSystem());
             sensor.registerObserver(new ACSystem());
             invoker = new CommandInvoker();
 
         } catch (NumberFormatException e) {
-            System.out.println("❌ Please enter valid numbers for rooms and capacity.");
+            System.out.println("❌ Please enter valid numbers for rooms, capacity, and delay.");
         } catch (IllegalStateException e) {
-            System.out.println("⚠️ Office is already configured: " + e.getMessage());
+            System.out.printf("⚠️ Office is already configured: %s%n", e.getMessage());
         }
     }
 
@@ -134,16 +145,16 @@ public class InteractiveShell {
             System.out.print("Enter room ID: ");
             int roomId = Integer.parseInt(scanner.nextLine());
 
-            System.out.print(STR."Enter new capacity for Room \{roomId}: ");
+            System.out.printf("Enter new capacity for Room %d: ", roomId);
             int capacity = Integer.parseInt(scanner.nextLine());
 
             OfficeConfiguration.getInstance().setRoomCapacity(roomId, capacity);
-            System.out.println(STR."✅ Room \{roomId} capacity updated to \{capacity}");
+            System.out.printf("✅ Room %d maximum capacity set to %d.%n", roomId, capacity);
 
         } catch (NumberFormatException e) {
             System.out.println("❌ Invalid input. Please enter valid numbers.");
         } catch (Exception e) {
-            log.info(STR."⚠ Error: \{e.getMessage()}");
+            System.out.printf("⚠️ Error: %s%n", e.getMessage());
         }
     }
 
@@ -152,7 +163,7 @@ public class InteractiveShell {
         Map<Integer, Integer> capacities = config.getAllRoomCapacities();
         System.out.println("\n=== Rooms & Capacities ===");
         capacities.forEach((roomId, cap) ->
-                System.out.println("Room " + roomId + " → Capacity: " + cap));
+                System.out.printf("Room %d → Capacity: %d%n", roomId, cap));
     }
 
     private void bookRoom() {
@@ -182,29 +193,49 @@ public class InteractiveShell {
             Booking booking = new Booking(roomId, user, start, duration);
 
             invoker.executeCommand(new BookRoomCommand(bookingManager, booking));
-            System.out.println("✅ Booking created successfully. ID: " + booking.getBookingId());
+
+            System.out.printf("Room %d booked from %s for %d minutes by %s.%n",
+                    roomId, parsedTime, duration, name);
 
         } catch (DateTimeParseException e) {
             System.out.println("❌ Invalid time format. Please use HH:mm (e.g., 09:30).");
         } catch (NumberFormatException e) {
             System.out.println("❌ Invalid input. Please enter valid numbers.");
         } catch (BookingConflictException e) {
-            System.out.println("⚠️ Booking conflict: " + e.getMessage());
+            log.info("⚠️ {}", e.getMessage());
         } catch (Exception e) {
-            System.out.println("⚠️ Error: " + e.getMessage());
+            System.out.printf("⚠️ Error: %s%n", e.getMessage());
         }
     }
 
     private void cancelBooking() {
         try {
-            System.out.print("Enter booking ID (UUID): ");
+            var allBookings = bookingManager.getAllBookings();
+            if (allBookings.isEmpty()) {
+                System.out.println("ℹ️ No bookings exist currently.");
+                return;
+            }
+
+            System.out.println("\n=== Current Bookings ===");
+            allBookings.forEach((roomId, bookings) -> {
+                bookings.forEach(b ->
+                        System.out.printf("Room %d | Owner: %s | Start: %s | Duration: %d mins | ID: %s%n",
+                                roomId, b.getOwner().getDisplayName(), b.getStart(), b.getDurationMinutes(), b.getBookingId())
+                );
+            });
+
+            System.out.print("Enter booking ID (UUID) to cancel: ");
             String bookingId = scanner.nextLine().trim();
 
-            invoker.executeCommand(new CancelRoomCommand(bookingManager, bookingId));
-            System.out.println("✅ Booking " + bookingId + " cancelled.");
+            boolean cancelled = bookingManager.cancelBooking(bookingId);
+            if (cancelled) {
+                System.out.printf("✅ Booking for Room cancelled successfully (ID: %s).%n", bookingId);
+            } else {
+                System.out.printf("⚠️ Booking not found: %s%n", bookingId);
+            }
 
         } catch (Exception e) {
-            System.out.println("⚠️ Error: " + e.getMessage());
+            System.out.printf("⚠️ Error: %s%n", e.getMessage());
         }
     }
 
@@ -217,12 +248,19 @@ public class InteractiveShell {
             int count = Integer.parseInt(scanner.nextLine());
 
             invoker.executeCommand(new AddOccupantCommand(sensor, roomId, count));
-            System.out.println("✅ Occupancy updated for Room " + roomId + " → " + count + " persons");
+
+            if (count == 0) {
+                System.out.printf("Room %d is now unoccupied. AC and lights turned off.%n", roomId);
+            } else if (count >= 2) {
+                System.out.printf("Room %d is now occupied by %d persons. AC and lights turned on.%n", roomId, count);
+            } else {
+                System.out.printf("Room %d occupancy insufficient to mark as occupied.%n", roomId);
+            }
 
         } catch (NumberFormatException e) {
             System.out.println("❌ Invalid input. Please enter valid numbers.");
         } catch (Exception e) {
-            System.out.println("⚠️ Error: " + e.getMessage());
+            System.out.printf("⚠️ Error: %s%n", e.getMessage());
         }
     }
 
@@ -233,38 +271,59 @@ public class InteractiveShell {
 
             var bookings = bookingManager.getBookingsForRoom(roomId);
             if (bookings.isEmpty()) {
-                System.out.println("ℹ️ No bookings for Room " + roomId);
+                System.out.printf("ℹ️ No bookings for Room %d%n", roomId);
             } else {
-                System.out.println("\n=== Bookings for Room " + roomId + " ===");
+                System.out.printf("\n=== Bookings for Room %d ===%n", roomId);
                 bookings.forEach(b ->
-                        System.out.println("ID: " + b.getBookingId() +
-                                " | Owner: " + b.getOwner().getDisplayName() +
-                                " | Start: " + b.getStart() +
-                                " | Duration: " + b.getDurationMinutes() + " mins")
+                        System.out.printf("Owner: %s | Start: %s | Duration: %d mins%n",
+                                b.getOwner().getDisplayName(), b.getStart(), b.getDurationMinutes())
                 );
             }
         } catch (NumberFormatException e) {
             System.out.println("❌ Invalid room ID.");
         } catch (Exception e) {
-            System.out.println("⚠️ Error: " + e.getMessage());
+            System.out.printf("⚠️ Error: %s%n", e.getMessage());
         }
     }
 
     private void showAllBookings() {
         var all = bookingManager.getAllBookings();
-        if (all.isEmpty()) {
+        boolean anyBooking = all.values().stream().anyMatch(list -> !list.isEmpty());
+
+        System.out.println("\n=== All Bookings ===");
+        if (!anyBooking) {
             System.out.println("ℹ️ No bookings currently exist.");
-        } else {
-            System.out.println("\n=== All Bookings ===");
-            all.forEach((roomId, bookings) -> {
-                System.out.println("Room " + roomId + ":");
+            return;
+        }
+
+        all.forEach((roomId, bookings) -> {
+            if (!bookings.isEmpty()) {
+                System.out.printf("Room %d:%n", roomId);
                 bookings.forEach(b ->
-                        System.out.println("   ID: " + b.getBookingId() +
-                                " | Owner: " + b.getOwner().getDisplayName() +
-                                " | Start: " + b.getStart() +
-                                " | Duration: " + b.getDurationMinutes() + " mins")
+                        System.out.printf("   Owner: %s | Start: %s | Duration: %d mins%n",
+                                b.getOwner().getDisplayName(), b.getStart(), b.getDurationMinutes())
                 );
-            });
+            }
+        });
+    }
+
+    private void showOccupancy() {
+        try {
+            System.out.print("Enter room ID: ");
+            int roomId = Integer.parseInt(scanner.nextLine());
+
+            int occ = bookingManager.getOccupancy(roomId);
+            String status;
+            if (occ == 0) status = "Room is empty.";
+            else if (occ == 1) status = "Room partially occupied (1 person).";
+            else status = String.format("Room occupied by %d persons.", occ);
+
+            System.out.printf("ℹ️ Room %d occupancy: %s%n", roomId, status);
+
+        } catch (NumberFormatException e) {
+            System.out.println("❌ Invalid room ID.");
+        } catch (Exception e) {
+            System.out.printf("⚠️ Error: %s%n", e.getMessage());
         }
     }
 

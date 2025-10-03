@@ -116,10 +116,17 @@ public class BookingManager {
             log.info("Booking created: {}", booking);
 
             // schedule auto-release: if room remains unoccupied for autoReleaseDelay after creation, release
+            long delayMillis = Duration.between(LocalDateTime.now(), booking.getStart().plus(autoReleaseDelay)).toMillis();
+            if (delayMillis < 0) {
+                delayMillis = autoReleaseDelay.toMillis(); // fallback if start already passed
+            }
+
             ScheduledFuture<?> future = scheduler.schedule(
                     () -> autoReleaseIfUnoccupied(booking.getBookingId()),
-                    autoReleaseDelay.toMillis(), TimeUnit.MILLISECONDS
+                    delayMillis,
+                    TimeUnit.MILLISECONDS
             );
+
             autoReleaseTasks.put(booking.getBookingId(), future);
 
         } finally {
@@ -131,13 +138,14 @@ public class BookingManager {
      * Cancel a booking by id.
      *
      * @param bookingId booking id
+     * @return
      */
-    public void cancelBooking(String bookingId) {
-        if (bookingId == null || bookingId.trim().isEmpty()) return;
+    public boolean cancelBooking(String bookingId) {
+        if (bookingId == null || bookingId.trim().isEmpty()) return false;
         Booking existing = bookingById.remove(bookingId);
         if (existing == null) {
             log.info("Attempted to cancel non-existent booking {}", bookingId);
-            return;
+            return false;
         }
         int roomId = existing.getRoomId();
         ReentrantLock lock = getLockForRoom(roomId);
@@ -152,6 +160,7 @@ public class BookingManager {
         } finally {
             lock.unlock();
         }
+        return true;
     }
 
     public Map<Integer, List<Booking>> getAllBookings() {
