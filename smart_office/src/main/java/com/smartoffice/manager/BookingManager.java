@@ -263,13 +263,34 @@ public class BookingManager {
                 autoReleaseTasks.remove(bookingId);
                 return;
             }
-            // if booking has already started, don't auto-release (user might be late, but policy could differ)
             LocalDateTime now = LocalDateTime.now();
-            if (!now.isBefore(b.getStart())) {
-                log.info("Auto-release skipped for {}: booking already started or in progress", bookingId);
-                autoReleaseTasks.remove(bookingId);
+            LocalDateTime deadline = b.getStart().plus(autoReleaseDelay);
+
+            // If still before grace deadline and occupancy < 2 → cancel
+            if (now.isAfter(deadline) && occ < 2) {
+                ReentrantLock lock = getLockForRoom(roomId);
+                lock.lock();
+                try {
+                    List<Booking> list = bookingsByRoom.get(roomId);
+                    boolean removed = list.removeIf(x -> bookingId.equals(x.getBookingId()));
+                    if (removed) {
+                        bookingById.remove(bookingId);
+                        log.info("Booking {} auto-released at {} due to no occupancy within {} (room {})",
+                                bookingId, now, autoReleaseDelay, roomId);
+                    }
+                } finally {
+                    lock.unlock();
+                    autoReleaseTasks.remove(bookingId);
+                }
                 return;
             }
+
+            // If room is occupied, cancel the auto-release task
+            if (occ >= 2) {
+                log.info("Auto-release cancelled for {}: room {} is occupied ({} occupants)", bookingId, roomId, occ);
+                autoReleaseTasks.remove(bookingId);
+            }
+
 
             // proceed to remove booking
             ReentrantLock lock = getLockForRoom(roomId);
