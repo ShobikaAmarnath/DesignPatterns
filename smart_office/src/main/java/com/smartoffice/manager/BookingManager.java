@@ -10,12 +10,7 @@ import org.slf4j.Logger;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -94,11 +89,11 @@ public class BookingManager {
      * Attempt to book a room. Validates room existence and conflicts.
      *
      * @param booking Booking object (immutable)
-     * @throws InvalidRoomException       if room doesn't exist
-     * @throws BookingConflictException   if time overlap detected
-     * @throws ValidationException        if booking invalid
+     * @throws InvalidRoomException     if room doesn't exist
+     * @throws BookingConflictException if time overlap detected
+     * @throws ValidationException      if booking invalid
      */
-    public Booking bookRoom(Booking booking) {
+    public void bookRoom(Booking booking) {
         validateBooking(booking);
         int roomId = booking.getRoomId();
         validateRoomExists(roomId);
@@ -127,7 +122,6 @@ public class BookingManager {
             );
             autoReleaseTasks.put(booking.getBookingId(), future);
 
-            return booking;
         } finally {
             lock.unlock();
         }
@@ -137,14 +131,13 @@ public class BookingManager {
      * Cancel a booking by id.
      *
      * @param bookingId booking id
-     * @return true if cancelled; false if not found
      */
-    public boolean cancelBooking(String bookingId) {
-        if (bookingId == null || bookingId.trim().isEmpty()) return false;
+    public void cancelBooking(String bookingId) {
+        if (bookingId == null || bookingId.trim().isEmpty()) return;
         Booking existing = bookingById.remove(bookingId);
         if (existing == null) {
             log.info("Attempted to cancel non-existent booking {}", bookingId);
-            return false;
+            return;
         }
         int roomId = existing.getRoomId();
         ReentrantLock lock = getLockForRoom(roomId);
@@ -156,10 +149,23 @@ public class BookingManager {
             ScheduledFuture<?> f = autoReleaseTasks.remove(bookingId);
             if (f != null) f.cancel(false);
             log.info("Booking {} cancelled and removed", bookingId);
-            return true;
         } finally {
             lock.unlock();
         }
+    }
+
+    public Map<Integer, List<Booking>> getAllBookings() {
+        Map<Integer, List<Booking>> snapshot = new ConcurrentHashMap<>();
+        for (Map.Entry<Integer, List<Booking>> entry : bookingsByRoom.entrySet()) {
+            ReentrantLock lock = getLockForRoom(entry.getKey());
+            lock.lock();
+            try {
+                snapshot.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+            } finally {
+                lock.unlock();
+            }
+        }
+        return Collections.unmodifiableMap(snapshot);
     }
 
     /**

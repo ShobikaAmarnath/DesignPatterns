@@ -118,7 +118,7 @@ public final class OfficeConfiguration {
 
     private void validateRoomExists(int roomId) {
         if (roomId <= 0 || roomId > totalRooms) {
-            throw new ValidationException("Invalid room id: " + roomId);
+            throw new ValidationException(STR."Invalid room id: \{roomId}");
         }
     }
 
@@ -129,10 +129,7 @@ public final class OfficeConfiguration {
 
     @Override
     public String toString() {
-        return "OfficeConfiguration{" +
-                "totalRooms=" + totalRooms +
-                ", roomCapacities=" + roomCapacities +
-                '}';
+        return STR."OfficeConfiguration{totalRooms=\{totalRooms}, roomCapacities=\{roomCapacities}}";
     }
 
     @Override
