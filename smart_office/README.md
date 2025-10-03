@@ -1,142 +1,147 @@
-🏢 Smart Office – Interactive Room Booking System
+# Smart Office – Interactive Room Booking System
 
-A menu-driven, production-ready Java application that simulates a smart office booking and occupancy management system. Built with modern software design patterns, robust exception handling, and extensible architecture.
+A menu-driven, production-ready Java application that simulates a smart office booking and occupancy management system. This project is built with modern software design patterns, robust exception handling, and an extensible architecture, making it an ideal showcase of clean coding principles and system design.
 
-✨ Features
+## Features
 
-📋 Interactive CLI Menu – configure office, manage rooms, book/cancel, monitor occupancy.
+- **Interactive CLI Menu**: Easily configure the office, manage rooms, book or cancel reservations, and monitor real-time occupancy.
 
-🏠 Dynamic Room Management – set total rooms, update capacities, and view real-time status.
+- **Dynamic Room Management**: Set the total number of rooms, update individual room capacities, and view their real-time status.
 
-🗓️ Smart Booking System – prevents conflicts, supports configurable booking durations.
+- **Smart Booking System**: Prevents booking conflicts and supports configurable booking durations to fit different meeting types.
 
-⏳ Auto-Release Mechanism – bookings auto-cancelled if not occupied within configurable grace period.
+- **Auto-Release Mechanism**: Bookings are automatically canceled if the room is not occupied within a configurable grace period, optimizing resource availability.
 
-👥 Occupancy Sensors – simulate people entering/leaving, triggering automated AC & lights.
+- **Occupancy Sensors**: Simulates people entering and leaving rooms, which automatically triggers smart devices.
 
-🔄 Observer-driven IoT simulation – lights and AC respond automatically to occupancy changes.
+- **Observer-driven IoT Simulation**: Smart devices like lights and AC systems respond automatically to changes in room occupancy.
 
-⚡ Robust Logging – SLF4J + Logback integration for professional production-grade logging.
+- **Robust Logging**: Integrated with SLF4J + Logback for professional, production-grade logging.
 
-❌ Strong Validations – prevents invalid input, conflicts, and misuse.
+- **Strong Validations**: Prevents invalid user input, booking conflicts, and system misuse with clear error messages.
 
-🧪 JUnit-ready – code structured for automated testing.
+- **Clean, Pattern-driven Architecture**: Code is structured using six key design patterns for maximum scalability and maintainability.
 
-🧩 Design Patterns Implemented
+- **JUnit-ready**: The entire codebase is structured for easy and effective automated testing.
 
-This project demonstrates six different design patterns (as required):
+## Design Patterns Implemented
 
-🔹 Behavioral Patterns
+This project demonstrates a practical application of six different software design patterns:
 
-Command Pattern
+**Behavioral Patterns**
 
-Used for encapsulating user actions (BookRoomCommand, CancelRoomCommand, AddOccupantCommand).
+- **Command Pattern**
+    - User actions like booking, canceling, and adding occupants are encapsulated as command objects (BookRoomCommand, CancelRoomCommand, AddOccupantCommand).
+    - This makes it easy to add new functionality and commands without altering the core system logic.
 
-Makes it easy to extend new commands without changing core logic.
+- **Observer Pattern**
+    - Implemented for real-time occupancy management (OccupancySensor, LightSystem, ACSystem).
+    - When the number of occupants in a room changes, all registered observers (the IoT devices) are automatically notified and react accordingly.
 
-Observer Pattern
+**Creational Patterns**
 
-Implemented in occupancy management (OccupancySensor, LightSystem, ACSystem).
+- **Singleton Pattern**
+    - The OfficeConfiguration class ensures that a single, consistent configuration (e.g., number of rooms, grace period) is used throughout the application.
+    - This prevents conflicts and ensures a single source of truth for system settings.
 
-When occupants change, all observers (devices) get notified automatically.
+- **Factory Pattern (Lightweight Implementation)**
+    - The creation of Booking objects is encapsulated, abstracting the complex instantiation logic from the client code and simplifying the booking process.
 
-🔹 Creational Patterns
+**Structural Patterns**
 
-Singleton Pattern
+- **Facade Pattern**
+    - The InteractiveShell class provides a simple, unified interface for the user to interact with the complex underlying subsystems (booking, occupancy, configuration).
 
-OfficeConfiguration ensures a single consistent configuration across the system.
+- **Decorator-like Extension (via Observer)**
+    - The OccupancySensor is extended with multiple "behaviors" (Lights, AC). New IoT systems (e.g., Security Cameras, Projectors) can be added as new observers without modifying any existing sensor or device code.
 
-Prevents multiple office re-initializations.
+## Getting Started
 
-Factory Pattern (lightweight)
+1. **Prerequisites**
+    - Java 21+
+    - Apache Maven
 
-Booking creation encapsulated cleanly, hiding internal details from client code.
+2. **Clone the repository:**
+    ```bash
+    git clone <your-repository-url>
+    cd smart_office
+    ```
+3. **Build the project using Maven:**
+    ```bash
+    mvn clean package
+    ```
 
-🔹 Structural Patterns
+4. **Run the application:**
+    ```bash
+    java -jar target/smart_office.jar
+    ```
 
-Facade Pattern
+5. **Usage Flow**
+    
+    Once the application is running, you will be greeted with an interactive menu.
 
-InteractiveShell provides a simple interface to the user, hiding complex system internals.
+    ``` 
+    === Smart Office Menu ===
+    1. Configure office
+    2. Set room capacity
+    3. Show rooms & capacities
+    4. Book room
+    5. Cancel booking
+    6. Add occupants
+    7. Show bookings for a room
+    8. Show all bookings
+    9. Show occupancy for a room
+    10. Help
+    11. Exit
+    ```
 
-Decorator-like Extension (via Observer)
+## Example Demo:
+- **Configure the office**: e.g., 3 rooms, default capacity 10, auto-release delay of 5 minutes.
 
-Occupancy sensor extended with multiple “behaviors” (Lights, AC). New systems (e.g., Security, Projector) can be added without changing existing code.
+- **Book Room 1**: for 09:00, lasting 60 minutes.
 
-🚀 How to Run
-Prerequisites
+- **Add occupants to Room 1**: watch as the lights and AC switch ON automatically.
 
-Java 21+
+- **Cancel a booking**: see the resources become available immediately.
 
-Maven (for dependencies)
+- **Wait for auto-release**: if a booked room remains empty past the grace period, the system will automatically cancel the booking.
 
-Run the program
-mvn clean package
-java -jar target/smart_office.jar
+## Sample Inputs & Outputs
+**Positive Cases**
+```
+> Book Room 1 09:00 60
+[INFO] Room 1 booked successfully from 09:00 for 60 minutes.
 
-📖 Usage Flow
-=== Smart Office Menu ===
-1. Configure office
-2. Set room capacity
-3. Show rooms & capacities
-4. Book room
-5. Cancel booking
-6. Add occupants
-7. Show bookings for a room
-8. Show all bookings
-9. Show occupancy for a room
-10. Help
-11. Exit
+> Add occupant 1 2
+[INFO] Room 1 is now occupied by 2 persons. Lights turned ON. AC turned ON.
+```
+**Negative Cases**
+```
+> Book Room 1 09:00 60  (when already booked)
+[ERROR] Room 1 is already booked during this time. Please choose a different time slot.
 
+> Cancel Room 2 (when it's not booked)
+[ERROR] Room 2 has no active bookings. Cannot cancel.
 
-Example Demo:
+> Add occupant 4 2 (for a non-existent room)
+[ERROR] Room 4 does not exist. Please enter a valid room number.
+```
+## Why This Project Stands Out
+- **Production-Ready Practices**: Employs essential real-world techniques like logging, structured exception handling, and input validation.
 
-Configure office → 3 rooms, capacity 10, auto-release delay 5m
+- **Configurable & Flexible**: All key parameters like room count, capacity, and auto-release delay are dynamically configurable at runtime.
 
-Book Room 1 for 09:00, 60 mins
+- **Extensible Architecture**: The Observer pattern makes it trivial to add new IoT devices (e.g., security cameras, smart projectors) with zero changes to existing code.
 
-Add occupants (lights & AC switch ON automatically)
+- **Clean Separation of Concerns**: Design patterns are applied consistently to ensure that each component has a single, well-defined responsibility.
 
-Cancel booking → resources freed
+- **Interview Advantage**: This project doesn't just deliver functionality—it demonstrates a deep, practical understanding of design patterns, clean coding, and scalable system design.
 
-Auto-release triggers if room remains empty
+## Future Enhancements
+- **Web UI**: Develop a modern web interface for a more user-friendly booking experience.
 
-✅ Sample Inputs & Outputs
+- **Database Persistence**: Integrate a database (e.g., PostgreSQL, MySQL) to persist bookings and office configurations.
 
-Positive Case:
+- **Role-Based Access Control**: Introduce different user roles, such as Admin and User, with distinct permissions.
 
-Book Room 1 09:00 60 → "Room 1 booked from 09:00 for 60 minutes."
-
-Add occupant 1 2 → "Room 1 is now occupied by 2 persons. AC and lights turned on."
-
-Negative Case:
-
-Book Room 1 09:00 60 (already booked) → "Room 1 is already booked during this time."
-
-Cancel Room 2 (not booked) → "Room 2 is not booked. Cannot cancel booking."
-
-Add occupant 4 2 (non-existent room) → "Room 4 does not exist."
-
-🌟 Why This Project Stands Out
-
-✔ Production-ready practices: logging, exception handling, validation.
-✔ Configurable & flexible: rooms, capacity, and auto-release delay are dynamic.
-✔ Extensible architecture: easy to add new IoT devices (e.g., security cameras) via Observer.
-✔ Clean separation of concerns: patterns applied consistently.
-✔ User-friendly interactive shell: professional prompts, help section, clear error handling.
-✔ Testing ready: structured for unit & integration tests with JUnit.
-✔ Interview advantage: not just functional — demonstrates deep understanding of design patterns, clean coding, and system design.
-
-📌 Future Enhancements
-
-Web UI for booking instead of CLI.
-
-Database persistence for bookings.
-
-Role-based access (Admin vs User).
-
-Integration with calendar APIs (Google/Outlook).
-
-👨‍💻 Author
-
-Developed as part of Design Patterns Coding Exercise for interview evaluation.
-Focused on clarity, scalability, and demonstrating applied design patterns.
+- **Calendar Integration**: Connect with external calendar APIs like Google Calendar or Outlook to sync bookings.'
