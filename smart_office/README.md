@@ -28,7 +28,7 @@ A menu-driven, production-ready Java application that simulates a smart office b
 
 This project demonstrates a practical application of six different software design patterns:
 
-**Behavioral Patterns**
+**1. Behavioral Patterns**
 
 - **Command Pattern**
     - User actions like booking, canceling, and adding occupants are encapsulated as command objects (BookRoomCommand, CancelRoomCommand, AddOccupantCommand).
@@ -38,7 +38,7 @@ This project demonstrates a practical application of six different software desi
     - Implemented for real-time occupancy management (OccupancySensor, LightSystem, ACSystem).
     - When the number of occupants in a room changes, all registered observers (the IoT devices) are automatically notified and react accordingly.
 
-**Creational Patterns**
+**2. Creational Patterns**
 
 - **Singleton Pattern**
     - The OfficeConfiguration class ensures that a single, consistent configuration (e.g., number of rooms, grace period) is used throughout the application.
@@ -47,7 +47,7 @@ This project demonstrates a practical application of six different software desi
 - **Factory Pattern (Lightweight Implementation)**
     - The creation of Booking objects is encapsulated, abstracting the complex instantiation logic from the client code and simplifying the booking process.
 
-**Structural Patterns**
+**3. Structural Patterns**
 
 - **Facade Pattern**
     - The InteractiveShell class provides a simple, unified interface for the user to interact with the complex underlying subsystems (booking, occupancy, configuration).
@@ -107,24 +107,44 @@ This project demonstrates a practical application of six different software desi
 - **Wait for auto-release**: if a booked room remains empty past the grace period, the system will automatically cancel the booking.
 
 ## Sample Inputs & Outputs
-**Positive Cases**
-```
-> Book Room 1 09:00 60
-[INFO] Room 1 booked successfully from 09:00 for 60 minutes.
 
-> Add occupant 1 2
-[INFO] Room 1 is now occupied by 2 persons. Lights turned ON. AC turned ON.
 ```
-**Negative Cases**
+Enter choice: 1
+Enter total number of rooms: 3
+Enter default room capacity: 10
+Enter auto-release delay in minutes: 1
+
+✅ Office configured with 3 meeting rooms:
+Room 1 (capacity 10)
+Room 2 (capacity 10)
+Room 3 (capacity 10)
 ```
-> Book Room 1 09:00 60  (when already booked)
-[ERROR] Room 1 is already booked during this time. Please choose a different time slot.
+```
+Enter choice: 4
+Enter room ID: 1
+Enter your email: abc@gmail.com
+Enter your name: abc
+Enter start time (HH:mm, today): 19:15
+Enter duration in minutes: 60
 
-> Cancel Room 2 (when it's not booked)
-[ERROR] Room 2 has no active bookings. Cannot cancel.
+Room 1 booked from 19:15 for 60 minutes by abc.
+```
+```
+Enter choice: 6
+Enter room ID: 1
+Enter occupant count: 10
 
-> Add occupant 4 2 (for a non-existent room)
-[ERROR] Room 4 does not exist. Please enter a valid room number.
+>> 19:19:32 INFO  [main] c.s.command.AddOccupantCommand - Executing AddOccupantCommand for room 1 with count 10
+
+>> 19:19:32 INFO  [main] c.s.observer.OccupancySensor - Sensor detected occupancy in room 1: 10 persons
+
+>> 19:19:32 INFO  [main] c.smartoffice.manager.BookingManager - Cancelled auto-release for booking 414bad2f-5e0d-48c9-8a83-0f8afdf2f90a because room 1 is occupied
+
+>> 19:19:32 INFO  [main] c.smartoffice.observer.LightSystem - Room 1: Lights ON (10 persons present)
+
+>> 19:19:32 INFO  [main] com.smartoffice.observer.ACSystem - Room 1: AC ON (10 persons present)
+
+Room 1 is now occupied by 10 persons. AC and lights turned on.
 ```
 ## Why This Project Stands Out
 - **Production-Ready Practices**: Employs essential real-world techniques like logging, structured exception handling, and input validation.
