@@ -4,7 +4,7 @@ import com.ecommerce.product.Product;
 
 // Base Decorator
 public abstract class ProductDecorator implements Product {
-    protected Product product; // the object being decorated
+    protected Product product;
 
     public ProductDecorator(Product product) {
         if (product == null) {
@@ -14,12 +14,18 @@ public abstract class ProductDecorator implements Product {
     }
 
     @Override
-    public double getPrice() {
-        return product.getPrice(); // default behavior (can be extended)
+    public String getName() {
+        return product.getName();
     }
 
     @Override
     public void showDetails() {
-        product.showDetails(); // delegate to wrapped product
+        product.showDetails();
     }
+
+    @Override
+    public double getPrice() {
+        return product.getPrice();
+    } // delegate to wrapped product
 }
+

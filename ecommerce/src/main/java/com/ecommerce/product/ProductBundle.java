@@ -2,41 +2,37 @@ package com.ecommerce.product;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class ProductBundle implements Product {
-    private static final Logger logger = Logger.getLogger(ProductBundle.class.getName());
-
-    private final String name;
+    private final String bundleName;
     private final List<Product> products = new ArrayList<>();
 
-    public ProductBundle(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Bundle name cannot be null or empty");
-        }
-        this.name = name;
+    public ProductBundle(String bundleName) {
+        if (bundleName == null || bundleName.isBlank()) throw new IllegalArgumentException("Bundle name cannot be empty");
+        this.bundleName = bundleName;
     }
 
+    @Override
+    public String getName() { return bundleName; }
+
+    @Override
     public void addProduct(Product product) {
-        if (product == null) {
-            logger.warning("Attempted to add null product to bundle: " + name);
-            throw new IllegalArgumentException("Product cannot be null");
-        }
+        if (product == null) throw new IllegalArgumentException("Cannot add null product to bundle");
         products.add(product);
-        logger.info("Added product to bundle: " + name);
+    }
+
+    @Override
+    public void showDetails() {
+        System.out.println("Bundle: " + bundleName);
+        for (Product p : products) {
+            System.out.print("  - ");
+            p.showDetails();
+        }
+        System.out.println("  Total Bundle Price: $" + String.format("%.2f", getPrice()));
     }
 
     @Override
     public double getPrice() {
         return products.stream().mapToDouble(Product::getPrice).sum();
-    }
-
-    @Override
-    public void showDetails() {
-        logger.info("Bundle: " + name);
-        for (Product product : products) {
-            product.showDetails();
-        }
-        logger.info("Total Price of Bundle: $" + getPrice());
     }
 }

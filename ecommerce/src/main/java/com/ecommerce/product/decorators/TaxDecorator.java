@@ -3,24 +3,23 @@ package com.ecommerce.product.decorators;
 import com.ecommerce.product.Product;
 
 public class TaxDecorator extends ProductDecorator {
-    private final double taxPercentage;
+    private final double taxPercent;
 
-    public TaxDecorator(Product product, double taxPercentage) {
+    public TaxDecorator(Product product, double taxPercent) {
         super(product);
-        if (taxPercentage < 0) {
-            throw new IllegalArgumentException("Tax percentage cannot be negative");
-        }
-        this.taxPercentage = taxPercentage;
-    }
-
-    @Override
-    public double getPrice() {
-        return super.getPrice() * (1 + taxPercentage / 100);
+        if (taxPercent < 0) throw new IllegalArgumentException("Invalid tax %");
+        this.taxPercent = taxPercent;
     }
 
     @Override
     public void showDetails() {
-        super.showDetails();
-        System.out.println(" + Tax (" + taxPercentage + "%)");
+        product.showDetails();
+        System.out.println("    + Tax (" + String.format("%.2f", taxPercent) + "%)");
+        System.out.println("    Price after tax: $" + String.format("%.2f", getPrice()));
+    }
+
+    @Override
+    public double getPrice() {
+        return product.getPrice() * (1 + taxPercent / 100.0);
     }
 }

@@ -1,9 +1,12 @@
 package com.ecommerce.order.observer;
 
-public class AdminObserver implements Observer {
+import com.ecommerce.order.Order;
+import com.ecommerce.order.OrderStatus;
+
+public class AdminObserver implements OrderObserver {
     @Override
-    public void update(String orderId, String status) {
-        System.out.println("Notification to Admin: Order " + orderId +
-                " status changed to " + status);
+    public void update(Order order, OrderStatus status) {
+        System.out.println("🧑‍💼 [Admin Notification] - Order "
+                + order.getOrderId() + " changed status to: " + status);
     }
 }

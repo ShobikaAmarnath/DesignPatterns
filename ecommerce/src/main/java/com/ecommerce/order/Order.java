@@ -1,27 +1,32 @@
 package com.ecommerce.order;
 
-import com.ecommerce.order.observer.Observer;
+import com.ecommerce.order.observer.OrderObserver;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Order {
     private final String orderId;
     private OrderStatus status;
-    private final List<Observer> observers = new ArrayList<>();
+    private final LocalDateTime createdAt;
+    private final List<OrderObserver> observers = new ArrayList<>();
 
     public Order(String orderId) {
         this.orderId = orderId;
         this.status = OrderStatus.PLACED;
+        this.createdAt = LocalDateTime.now();
+        notifyObservers(); // initial notification
     }
 
-    public void addObserver(Observer observer) {
-        if (observer == null) {
-            throw new IllegalArgumentException("Observer cannot be null");
-        }
-        observers.add(observer);
+    public String getOrderId() { return orderId; }
+    public OrderStatus getStatus() { return status; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public void addObserver(OrderObserver observer) {
+        if (observer != null) observers.add(observer);
     }
 
-    public void removeObserver(Observer observer) {
+    public void removeObserver(OrderObserver observer) {
         observers.remove(observer);
     }
 
@@ -30,13 +35,9 @@ public class Order {
         notifyObservers();
     }
 
-    public OrderStatus getStatus() {
-        return status;
-    }
-
     private void notifyObservers() {
-        for (Observer observer : observers) {
-            observer.update(orderId, status.toString());
+        for (OrderObserver obs : observers) {
+            obs.update(this, status);
         }
     }
 }
