@@ -3,8 +3,6 @@
 A modular, scalable **Command-Line Interface (CLI) E-Commerce System** built in Java — designed to demonstrate **core software design patterns** such as Singleton, Factory, Strategy, Observer, Decorator, and Composite.  
 This project simulates a real-world shopping experience.
 
----
-
 ##  Introduction
 
 This CLI-based e-commerce system allows customers and admins to:
@@ -16,8 +14,6 @@ This CLI-based e-commerce system allows customers and admins to:
 - View order history and order details.
 
 The project emphasizes **clean code**, **design patterns**, and **production-like architecture** to simulate a real-world backend system.
-
----
 
 ##  Features
 
@@ -39,20 +35,16 @@ The project emphasizes **clean code**, **design patterns**, and **production-lik
 - **Observer Pattern Integration**  
   Customers and admin receive real-time notifications on order status changes.
 
----
-
 ## 🛠 Design Patterns Used
 
 | Pattern         | Purpose |
 |-----------------|---------|
-| **Singleton**   | Ensures a single instance of `DatabaseConnection`. |
+| **Singleton**   | Ensures a single instance of **DatabaseConnection**. |
 | **Factory**     | Dynamically creates payment method instances. |
 | **Strategy**    | Implements different payment methods under a common interface. |
 | **Observer**    | Allows customers and admins to subscribe to order status changes. |
 | **Decorator**   | Adds dynamic behaviors (Discounts, Tax, Gift Wrap) to products and orders. |
 | **Composite**   | Handles product bundles as composite objects of products. |
-
----
 
 ##  Setup Instructions
 
@@ -146,7 +138,7 @@ Products stored: 40
 Orders stored: 10
 ```
 
-**Customer Flow**:
+### **Customer Flow**:
 **Add to Cart**
 ```
 Enter product number to add (or press Enter to stop): 2

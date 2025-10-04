@@ -95,7 +95,7 @@ This project demonstrates a practical application of six different software desi
     11. Exit
     ```
 
-## Example Demo:
+## Example Demo
 - **Configure the office**: e.g., 3 rooms, default capacity 10, auto-release delay of 5 minutes.
 
 - **Book Room 1**: for 09:00, lasting 60 minutes.
