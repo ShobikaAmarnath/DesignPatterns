@@ -58,14 +58,14 @@ The project emphasizes **clean code**, **design patterns**, and **production-lik
    git clone https://github.com/ShobikaAmarnath/DesignPatterns.git
    cd ecommerce
    ```
-2. **Compile**:
-    ```
-    javac -d out src/**/*.java
+2. **Build the project using Maven:**
+    ```bash
+    mvn clean package
     ```
 
-3. **Run**:
-    ```
-    java -cp out com.ecommerce.Main
+3. **Run the application:**
+    ```bash
+    java -jar target/ecommerce.jar
     ```
 
 4. Follow the on-screen menus for Admin and Customer operations.

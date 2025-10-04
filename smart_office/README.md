@@ -73,7 +73,7 @@ This project demonstrates a practical application of six different software desi
 
 4. **Run the application:**
     ```bash
-    java -jar target/smart_office.jar
+    java --enable-preview -jar target/smart_office.jar
     ```
 
 5. **Usage Flow**
