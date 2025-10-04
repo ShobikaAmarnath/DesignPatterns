@@ -63,7 +63,7 @@ This project demonstrates a practical application of six different software desi
 
 2. **Clone the repository:**
     ```bash
-    git clone <your-repository-url>
+    git clone https://github.com/ShobikaAmarnath/DesignPatterns.git
     cd smart_office
     ```
 3. **Build the project using Maven:**
